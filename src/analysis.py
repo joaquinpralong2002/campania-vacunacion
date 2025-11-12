@@ -20,40 +20,50 @@ def calcular_metricas_principales(resultados_df: pd.DataFrame, config_escenario:
         return {"error": "El DataFrame de resultados está vacío. No se pueden calcular métricas."}
 
     # --- Filtrar eventos ---
+    # solo las filas donde el evento fue "Vacunado"
     vacunados_df = resultados_df[resultados_df["evento"] == "Vacunado"].copy()
+    # solo las filas donde el evento fue "Reprogramacion"
     reprogramados_df = resultados_df[resultados_df["evento"] == "Reprogramacion"].copy()
 
-    # --- Métricas Generales ---
-    total_vacunados = len(vacunados_df)
-    total_reprogramados = len(reprogramados_df)
+    # --- Métricas Generales  ---
+    # cuenta cuántas filas hay en vacunados_df
+    total_vacunados = int(len(vacunados_df))
+    # cuenta cuántas filas hay en reprogramados_df
+    total_reprogramados = int(len(reprogramados_df))
+    # La suma de los dos anteriores
     total_pacientes_procesados = total_vacunados + total_reprogramados
+    # porcentaje de pacientes que reprogramaron sobre el total.
     tasa_abandono = (total_reprogramados / total_pacientes_procesados) if total_pacientes_procesados > 0 else 0
 
-    # --- Estadísticas de Cola y Tiempos (solo para pacientes vacunados) ---
+    # --- Estadísticas de Cola y Tiempos  ---
     if total_vacunados > 0:
-        tiempo_espera_promedio = vacunados_df['tiempo_espera_minutos'].mean()
-        tiempo_espera_maximo = vacunados_df['tiempo_espera_minutos'].max()
-        tiempo_espera_minimo = vacunados_df['tiempo_espera_minutos'].min()
+        tiempo_espera_promedio = float(vacunados_df['tiempo_espera_minutos'].mean())
+        tiempo_espera_maximo = float(vacunados_df['tiempo_espera_minutos'].max())
+        tiempo_espera_minimo = float(vacunados_df['tiempo_espera_minutos'].min())
         
-        tiempo_en_sistema_promedio = vacunados_df['tiempo_en_sistema_minutos'].mean()
+        tiempo_en_sistema_promedio = float(vacunados_df['tiempo_en_sistema_minutos'].mean())
         
-        longitud_cola_promedio = resultados_df['longitud_cola_actual'].mean()
-        longitud_cola_maxima = resultados_df['longitud_cola_actual'].max()
+        longitud_cola_promedio = float(resultados_df['longitud_cola_actual'].mean())
+        longitud_cola_maxima = int(resultados_df['longitud_cola_actual'].max())
     else:
-        tiempo_espera_promedio = 0
-        tiempo_espera_maximo = 0
-        tiempo_espera_minimo = 0
-        tiempo_en_sistema_promedio = 0
-        longitud_cola_promedio = 0
-        longitud_cola_maxima = resultados_df['longitud_cola_actual'].max() if not resultados_df.empty else 0
+        tiempo_espera_promedio = 0.0
+        tiempo_espera_maximo = 0.0
+        tiempo_espera_minimo = 0.0
+        tiempo_en_sistema_promedio = 0.0
+        longitud_cola_promedio = 0.0
+        longitud_cola_maxima = int(resultados_df['longitud_cola_actual'].max()) if not resultados_df.empty else 0
 
     # --- Utilización de Puestos ---
+    # cuánto tiempo se invirtió en total vacunando
     tiempo_total_servicio = total_vacunados * config_escenario["tiempo_promedio_vacunacion_minutos"]
+    # tiempo total que las cabinas estuvieron disponibles
     tiempo_total_disponible = config_escenario["num_cabinas"] * config_escenario["horas_operacion_por_dia"] * 60 * duracion_dias
+    # división del tiempo de servicio entre el tiempo disponible.
     utilizacion_promedio_cabinas = (tiempo_total_servicio / tiempo_total_disponible) if tiempo_total_disponible > 0 else 0
 
     # --- Cálculo de Costos ---
     costos_config = ConfiguracionSimulacion.COSTOS
+    #Costo por cabina por día
     costo_fijo_total = costos_config["costo_fijo_por_cabina_por_dia"] * config_escenario["num_cabinas"] * duracion_dias
     costo_total_dosis = costos_config["costo_por_dosis"] * total_vacunados
     costo_total_reprogramaciones = costos_config["costo_por_reprogramacion"] * total_reprogramados
@@ -67,7 +77,7 @@ def calcular_metricas_principales(resultados_df: pd.DataFrame, config_escenario:
             "total_pacientes_procesados": total_pacientes_procesados,
             "total_vacunados": total_vacunados,
             "total_reprogramados": total_reprogramados,
-            "tasa_abandono_porcentual": tasa_abandono * 100,
+            "tasa_abandono_porcentual": float(tasa_abandono * 100),
         },
         "tiempos_espera_minutos": {
             "promedio": tiempo_espera_promedio,
@@ -80,14 +90,14 @@ def calcular_metricas_principales(resultados_df: pd.DataFrame, config_escenario:
         },
         "rendimiento": {
             "tiempo_promedio_en_sistema_minutos": tiempo_en_sistema_promedio,
-            "utilizacion_promedio_cabinas_porcentual": utilizacion_promedio_cabinas * 100,
+            "utilizacion_promedio_cabinas_porcentual": float(utilizacion_promedio_cabinas * 100),
         },
         "costos": {
-            "costo_total_campana": costo_total_campana,
-            "costo_fijo_total": costo_fijo_total,
-            "costo_total_dosis": costo_total_dosis,
-            "costo_total_reprogramaciones": costo_total_reprogramaciones,
-            "costo_por_paciente_vacunado": costo_por_paciente_vacunado,
+            "costo_total_campana": float(costo_total_campana),
+            "costo_fijo_total": float(costo_fijo_total),
+            "costo_total_dosis": float(costo_total_dosis),
+            "costo_total_reprogramaciones": float(costo_total_reprogramaciones),
+            "costo_por_paciente_vacunado": float(costo_por_paciente_vacunado),
         }
     }
     
