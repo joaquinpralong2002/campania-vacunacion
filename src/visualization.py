@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 def configurar_estilo_graficos():
-    """Configura un estilo visual para todos los gráficos."""
+    """Configura un estilo visual consistente y agradable para todos los gráficos."""
     sns.set_theme(style="whitegrid")
     plt.rcParams['figure.figsize'] = (12, 7)
     plt.rcParams['axes.titlesize'] = 16
@@ -15,8 +15,12 @@ def configurar_estilo_graficos():
 
 def plot_vacunados_acumulados(resultados_df: pd.DataFrame, ruta_guardado: str):
     """
-    Genera un gráfico de la cantidad de pacientes vacunados acumulados a lo largo del tiempo.
+    Genera y guarda un gráfico de la cantidad de pacientes vacunados acumulados a lo largo del tiempo.
     """
+    if resultados_df.empty or "evento" not in resultados_df.columns:
+        print("Advertencia: DataFrame vacío o sin columna 'evento'. No se puede generar gráfico de vacunados.")
+        return
+
     vacunados_df = resultados_df[resultados_df["evento"] == "Vacunado"].copy()
     if vacunados_df.empty:
         print("Advertencia: No hay datos de vacunados para graficar.")
@@ -41,6 +45,10 @@ def plot_longitud_cola_vs_tiempo(resultados_df: pd.DataFrame, ruta_guardado: str
     """
     Genera y guarda un gráfico de la longitud de la cola a lo largo del tiempo.
     """
+    if resultados_df.empty or "longitud_cola_actual" not in resultados_df.columns:
+        print("Advertencia: DataFrame vacío o sin columna 'longitud_cola_actual'. No se puede generar gráfico de cola.")
+        return
+
     plt.figure()
     plt.plot(resultados_df['tiempo_simulacion'] / 60, resultados_df['longitud_cola_actual'], alpha=0.7)
     plt.title('Evolución de la Longitud de la Cola vs. Tiempo')
@@ -54,6 +62,10 @@ def plot_histograma_tiempos_espera(resultados_df: pd.DataFrame, ruta_guardado: s
     """
     Genera y guarda un histograma de los tiempos de espera de los pacientes que fueron vacunados.
     """
+    if resultados_df.empty or "evento" not in resultados_df.columns:
+        print("Advertencia: DataFrame vacío o sin columna 'evento'. No se puede generar histograma.")
+        return
+
     vacunados_df = resultados_df[resultados_df["evento"] == "Vacunado"]
     if vacunados_df.empty or vacunados_df['tiempo_espera_minutos'].sum() == 0:
         print("Advertencia: No hay tiempos de espera para graficar.")
@@ -128,6 +140,7 @@ def generar_visualizaciones_escenario(resultados_df: pd.DataFrame, ruta_escenari
 
 # --- Bloque para Pruebas ---
 if __name__ == '__main__':
+    
     # Crear datos de prueba
     datos_prueba = {
         "tiempo_simulacion": np.arange(0, 100, 0.5),
