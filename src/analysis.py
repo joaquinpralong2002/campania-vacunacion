@@ -4,6 +4,66 @@ import pandas as pd
 import numpy as np
 from src.config import ConfiguracionSimulacion
 
+def calcular_tiempo_para_hitos_vacunacion(vacunados_df: pd.DataFrame, poblacion_total: int, horas_operacion_dia: int) -> dict:
+    """
+    Calcula el tiempo (días y semanas) para alcanzar hitos de vacunación (70%, 80%, 100%).
+
+    Args:
+        vacunados_df (pd.DataFrame): DataFrame con los datos de los pacientes vacunados.
+        poblacion_total (int): Tamaño total de la población objetivo.
+        horas_operacion_dia (int): Horas de operación del centro por día.
+
+    Returns:
+        dict: Un diccionario con los tiempos para cada hito.
+    """
+    hitos = {
+        "70_porciento": 0.70,
+        "80_porciento": 0.80,
+        "100_porciento": 1.0,
+    }
+    
+    resultados_hitos = {}
+
+    if vacunados_df.empty or poblacion_total == 0:
+        for hito_nombre in hitos:
+            resultados_hitos[hito_nombre] = {"dias": "N/A", "semanas": "N/A", "vacunados_necesarios": "N/A"}
+        return resultados_hitos
+
+    # Asegurarse de que el df esté ordenado por tiempo
+    vacunados_df = vacunados_df.sort_values(by="tiempo_simulacion").reset_index(drop=True)
+    vacunados_df["vacunados_acumulados"] = vacunados_df.index + 1
+
+    minutos_por_dia_operativo = horas_operacion_dia * 60
+
+    for hito_nombre, hito_porcentaje in hitos.items():
+        vacunados_necesarios = int(poblacion_total * hito_porcentaje)
+        
+        # Buscar la primera vez que se alcanza el hito
+        df_hito = vacunados_df[vacunados_df["vacunados_acumulados"] >= vacunados_necesarios]
+        
+        if not df_hito.empty:
+            tiempo_en_minutos = df_hito.iloc[0]["tiempo_simulacion"]
+            
+            # Convertir minutos a días y semanas operativos
+            dias_necesarios = tiempo_en_minutos / minutos_por_dia_operativo
+            semanas_necesarias = dias_necesarios / 7  # Asumiendo operación 7 días/semana
+            
+            resultados_hitos[hito_nombre] = {
+                "dias": round(dias_necesarios, 2),
+                "semanas": round(semanas_necesarias, 2),
+                "vacunados_necesarios": vacunados_necesarios
+            }
+        else:
+            # Si el hito nunca se alcanzó en la simulación
+            resultados_hitos[hito_nombre] = {
+                "dias": "No alcanzado",
+                "semanas": "No alcanzado",
+                "vacunados_necesarios": vacunados_necesarios
+            }
+            
+    return resultados_hitos
+
+
 def calcular_metricas_principales(resultados_df: pd.DataFrame, config_escenario: dict, duracion_dias: int) -> dict:
     """
     Calcula las métricas de rendimiento clave a partir de los datos de la simulación.
@@ -74,6 +134,11 @@ def calcular_metricas_principales(resultados_df: pd.DataFrame, config_escenario:
     # Métrica de eficiencia: Costo total por día de campaña.
     eficiencia_costo_tiempo = (costo_total_campana / duracion_dias) if duracion_dias > 0 else 0
 
+    # --- Cálculo de Tiempos para Hitos de Vacunación ---
+    poblacion_total = config_escenario.get("tamano_poblacion", 0)
+    horas_operacion = config_escenario.get("horas_operacion_por_dia", 1)
+    tiempos_hitos = calcular_tiempo_para_hitos_vacunacion(vacunados_df, poblacion_total, horas_operacion)
+
     # --- Ensamblar diccionario de resultados ---
     metricas = {
         "generales": {
@@ -102,7 +167,8 @@ def calcular_metricas_principales(resultados_df: pd.DataFrame, config_escenario:
             "costo_total_reprogramaciones": float(costo_total_reprogramaciones),
             "costo_por_paciente_vacunado": float(costo_por_paciente_vacunado),
             "eficiencia_costo_tiempo_por_dia": float(eficiencia_costo_tiempo),
-        }
+        },
+        "hitos_vacunacion": tiempos_hitos,
     }
     
     return metricas
