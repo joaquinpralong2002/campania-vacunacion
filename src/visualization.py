@@ -164,7 +164,7 @@ if __name__ == '__main__':
             "generales": {"total_vacunados": 1000},
             "costos": {"costo_total_campana": 5000000}
         },
-        "escenario_7_cabinas": {
+        "escenario_10_cabinas": {
             "generales": {"total_vacunados": 1400},
             "costos": {"costo_total_campana": 6500000}
         },

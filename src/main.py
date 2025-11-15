@@ -16,7 +16,7 @@ def main():
 
     # Definir los escenarios a ejecutar
     # Asegúrate de que estos nombres coincidan con los definidos en ConfiguracionSimulacion
-    nombres_escenarios = ["base", "7_cabinas", "80_asistencia"] 
+    nombres_escenarios = ["base", "10_cabinas", "80_asistencia","95_asistencia", "60_asistencia", "dos_dosis", "acelerado"] 
     
     # Duración de la simulación en días para todos los escenarios
     # Se reduce a 2 días para obtener resultados rápidos y evitar que la simulación se cuelgue
@@ -89,6 +89,12 @@ def main():
             metricas_por_escenario,
             metrica='tiempos_espera_minutos.promedio',
             titulo='Comparación de Tiempo de Espera Promedio por Escenario',
+            ruta_guardado=ruta_salida_comparativa
+        )
+        plot_comparacion_escenarios(
+            metricas_por_escenario,
+            metrica='costos.eficiencia_costo_tiempo_por_dia',
+            titulo='Comparación de Eficiencia Costo/Tiempo por Escenario',
             ruta_guardado=ruta_salida_comparativa
         )
         print(f"Visualizaciones comparativas guardadas en: {ruta_salida_comparativa}")
