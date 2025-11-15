@@ -14,7 +14,7 @@ class ConfiguracionSimulacion:
         "horas_operacion_por_dia": 10,  # Horas de operación diarias (8:00 a 18:00)
         "tasa_asistencia": 0.70,  # Porcentaje de personas que realmente asisten en su día asignado
         "dosis_diarias_disponibles": float('inf'), # Dosis diarias disponibles, se asume infinito si no hay límite
-        "tamano_poblacion": 100000, # Tamaño de la población a vacunar (ejemplo, necesita ser definido para "Concordia")
+        "tamano_poblacion": 198000, # Tamaño de la población a vacunar (ejemplo, necesita ser definido para "Concordia")
         "dias_simulacion": 365, # Días máximos para ejecutar la simulación
     }
 
@@ -27,16 +27,27 @@ class ConfiguracionSimulacion:
         "costo_por_minuto_espera_por_persona": 3
     }
 
+
     # Configuraciones de escenarios específicos
-    # Ejemplo: Escenario con 7 cabinas
-    ESCENARIO_7_CABINAS = ESCENARIO_BASE.copy()
-    ESCENARIO_7_CABINAS["num_cabinas"] = 7
+    # Escenario con 10 cabinas
+    ESCENARIO_10_CABINAS = ESCENARIO_BASE.copy()
+    ESCENARIO_10_CABINAS["num_cabinas"] = 10
 
-    # Ejemplo: Escenario con 80% de tasa de asistencia
+    # Escenarios con 60, 80 y 95% de tasa de asistencia
+
+    ESCENARIO_BASE_60_ASISTENCIA = ESCENARIO_BASE.copy()
+    ESCENARIO_BASE_60_ASISTENCIA["tasa_asistencia"] = 0.60
+
     ESCENARIO_80_ASISTENCIA = ESCENARIO_BASE.copy()
-    ESCENARIO_80_ASISTENCIA["tasa_asistencia"] = 0.80 # Este parámetro necesita ser integrado en la lógica de simulación
+    ESCENARIO_80_ASISTENCIA["tasa_asistencia"] = 0.80 
 
-    # Añadir más escenarios según sea necesario
+    ESCENARIO_BASE_95_ASISTENCIA = ESCENARIO_BASE.copy()
+    ESCENARIO_BASE_95_ASISTENCIA["tasa_asistencia"] = 0.95
+
+    ESCENARIO_ACELERADO = ESCENARIO_BASE.copy()
+    ESCENARIO_ACELERADO["tasa_llegada_por_minuto"] = 50
+    ESCENARIO_ACELERADO["tiempo_promedio_vacunacion_minutos"] = 2
+
     # Para el esquema de dos dosis, esto podría implicar una lógica más compleja dentro del modelo de simulación
     # en lugar de solo un parámetro de configuración, pero podemos añadir un indicador aquí.
     ESCENARIO_DOS_DOSIS = ESCENARIO_BASE.copy()
@@ -51,11 +62,17 @@ class ConfiguracionSimulacion:
         """
         if nombre_escenario == "base":
             return ConfiguracionSimulacion.ESCENARIO_BASE
-        elif nombre_escenario == "7_cabinas":
-            return ConfiguracionSimulacion.ESCENARIO_7_CABINAS
+        elif nombre_escenario == "10_cabinas":
+            return ConfiguracionSimulacion.ESCENARIO_10_CABINAS
         elif nombre_escenario == "80_asistencia":
             return ConfiguracionSimulacion.ESCENARIO_80_ASISTENCIA
+        elif nombre_escenario == "60_asistencia":
+            return ConfiguracionSimulacion.ESCENARIO_BASE_60_ASISTENCIA
+        elif nombre_escenario == "95_asistencia":
+            return ConfiguracionSimulacion.ESCENARIO_BASE_95_ASISTENCIA
         elif nombre_escenario == "dos_dosis":
             return ConfiguracionSimulacion.ESCENARIO_DOS_DOSIS
+        elif nombre_escenario == "acelerado":
+            return ConfiguracionSimulacion.ESCENARIO_ACELERADO
         else:
             raise ValueError(f"Escenario desconocido: {nombre_escenario}")
