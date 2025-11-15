@@ -29,36 +29,59 @@ def generar_llegadas(env, centro_vacunacion, config):
             env.process(proceso_paciente(env, f'Paciente_{id_paciente}', centro_vacunacion, config))
 
 def proceso_paciente(env, nombre_paciente, centro_vacunacion, config):
-    """Modela el flujo completo de un paciente en el centro de vacunación."""
-    tiempo_llegada = env.now
+    """Modela el flujo completo de un paciente, incluyendo una o dos dosis."""
     
-    # Decisión de reprogramar: se toma ANTES de entrar a la cola de espera.
-    # Si todas las cabinas están ocupadas, hay posibilidad de reprogramar.
+    # --- Proceso para la Primera Dosis ---
+    tiempo_llegada_d1 = env.now
+    
+    # Decisión de reprogramar para la primera dosis
     if centro_vacunacion.count == centro_vacunacion.capacity:
         if random.random() < config["probabilidad_reprogramacion"]:
             longitud_cola_al_llegar = len(centro_vacunacion.queue)
-            registrar_evento(env, nombre_paciente, "Reprogramacion", longitud_cola_al_llegar, 0, 0)
-            return  # El paciente abandona el sistema
+            registrar_evento(env, nombre_paciente, "Reprogramacion", longitud_cola_al_llegar, 0, 0, dosis_numero=1)
+            return
 
-    # El paciente solicita una cabina de vacunación y espera si es necesario
-    with centro_vacunacion.request() as solicitud:
-        yield solicitud
+    with centro_vacunacion.request() as solicitud_d1:
+        yield solicitud_d1
         
-        tiempo_inicio_servicio = env.now
-        tiempo_espera = tiempo_inicio_servicio - tiempo_llegada
+        tiempo_inicio_servicio_d1 = env.now
+        tiempo_espera_d1 = tiempo_inicio_servicio_d1 - tiempo_llegada_d1
         
-        # El tiempo de vacunación sigue una distribución exponencial
-        tiempo_vacunacion = random.expovariate(1.0 / config["tiempo_promedio_vacunacion_minutos"])
-        yield env.timeout(tiempo_vacunacion)
+        tiempo_vacunacion_d1 = random.expovariate(1.0 / config["tiempo_promedio_vacunacion_minutos"])
+        yield env.timeout(tiempo_vacunacion_d1)
         
-        tiempo_salida = env.now
-        tiempo_en_sistema = tiempo_salida - tiempo_llegada
+        tiempo_salida_d1 = env.now
+        tiempo_en_sistema_d1 = tiempo_salida_d1 - tiempo_llegada_d1
         
-        # La longitud de la cola se mide justo al momento de la salida del paciente
-        longitud_cola_al_salir = len(centro_vacunacion.queue)
-        registrar_evento(env, nombre_paciente, "Vacunado", longitud_cola_al_salir, tiempo_espera, tiempo_en_sistema)
+        longitud_cola_al_salir_d1 = len(centro_vacunacion.queue)
+        registrar_evento(env, nombre_paciente, "Vacunado", longitud_cola_al_salir_d1, tiempo_espera_d1, tiempo_en_sistema_d1, dosis_numero=1)
 
-def registrar_evento(env, paciente_id, evento, longitud_cola, tiempo_espera, tiempo_sistema):
+    # --- Programación y Proceso para la Segunda Dosis (si aplica) ---
+    if config.get("esquema_dos_dosis_habilitado", False):
+        # El paciente "espera" el intervalo para su segunda dosis
+        intervalo_minutos = config["intervalo_dos_dosis_dias"] * config["horas_operacion_por_dia"] * 60
+        yield env.timeout(intervalo_minutos)
+        
+        # --- El paciente "regresa" para la segunda dosis ---
+        tiempo_llegada_d2 = env.now
+        
+        # Para la segunda dosis, se asume que el paciente no reprograma y espera lo necesario.
+        with centro_vacunacion.request() as solicitud_d2:
+            yield solicitud_d2
+            
+            tiempo_inicio_servicio_d2 = env.now
+            tiempo_espera_d2 = tiempo_inicio_servicio_d2 - tiempo_llegada_d2
+            
+            tiempo_vacunacion_d2 = random.expovariate(1.0 / config["tiempo_promedio_vacunacion_minutos"])
+            yield env.timeout(tiempo_vacunacion_d2)
+            
+            tiempo_salida_d2 = env.now
+            tiempo_en_sistema_d2 = tiempo_salida_d2 - tiempo_llegada_d2
+            
+            longitud_cola_al_salir_d2 = len(centro_vacunacion.queue)
+            registrar_evento(env, nombre_paciente, "Vacunado", longitud_cola_al_salir_d2, tiempo_espera_d2, tiempo_en_sistema_d2, dosis_numero=2)
+
+def registrar_evento(env, paciente_id, evento, longitud_cola, tiempo_espera, tiempo_sistema, dosis_numero=None):
     """Registra un evento clave de la simulación en la lista de datos. Toma la información de un evento (quién, qué pasó, cuándo, cuánto esperó, etc.) 
     y la añade como un diccionario a la lista global datos_simulacion."""
     datos_simulacion.append({
@@ -68,6 +91,7 @@ def registrar_evento(env, paciente_id, evento, longitud_cola, tiempo_espera, tie
         "longitud_cola_actual": longitud_cola,
         "tiempo_espera_minutos": tiempo_espera,
         "tiempo_en_sistema_minutos": tiempo_sistema,
+        "dosis_numero": dosis_numero
     })
 
 def ejecutar_simulacion(config_escenario: dict, duracion_dias: int):
