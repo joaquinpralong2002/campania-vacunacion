@@ -7,24 +7,7 @@ Este documento describe los pasos necesarios ejecutar la simulación de la campa
 - Tener instalado Python 3.8 o una versión superior.
 - Tener instalado `pip` (el gestor de paquetes de Python).
 
-## 2. Configuración del Entorno
-
-### a. Crear y Activar un Entorno Virtual
-
-```bash
-# Crear el entorno virtual
-python3 -m venv venv
-
-# Activar el entorno virtual
-# En Linux o macOS:
-source venv/bin/activate
-# En Windows:
-.\venv\Scripts\activate
-```
-
-Una vez activado, verás `(venv)` al principio de la línea de tu terminal.
-
-### b. Instalar las Dependencias
+## 2. Instalación de Dependencias
 
 Instala todas las bibliotecas necesarias que se encuentran en el archivo `requirements.txt`:
 
