@@ -1,5 +1,6 @@
 # src/main.py
 
+import json
 import pandas as pd
 import os
 import multiprocessing
@@ -49,49 +50,60 @@ def ejecutar_escenario(nombre_escenario: str, duracion_simulacion_dias: int) -> 
     print(f"Generando visualizaciones para '{nombre_escenario}'...")
     generar_visualizaciones_escenario(resultados_df, ruta_salida_escenario)
     print(f"Visualizaciones para '{nombre_escenario}' guardadas en: {ruta_salida_escenario}")
-    
+
+    # 6. Guardar métricas en JSON
+    ruta_metricas_json = os.path.join(ruta_salida_escenario, "metricas.json")
+    try:
+        with open(ruta_metricas_json, 'w') as f:
+            json.dump(metricas, f, indent=4, default=str) # default=str para manejar tipos no serializables como numpy.int64
+        print(f"Métricas para '{nombre_escenario}' guardadas en: {ruta_metricas_json}")
+    except Exception as e:
+        print(f"Error al guardar las métricas en JSON para '{nombre_escenario}': {e}")
+
     return nombre_escenario, metricas
 
 def main():
     """
     Función principal para ejecutar la simulación de la campaña de vacunación
     en paralelo para diferentes escenarios.
+    
+    Esta función ejecuta las simulaciones y guarda los resultados y métricas
+    de cada escenario en su respectivo directorio en 'data/output/'.
     """
-    print("Iniciando la simulación de la campaña de vacunación en paralelo...")
+    print("Iniciando la simulación de la campaña de vacunación...")
 
-    nombres_escenarios = ["base", "10_cabinas", "80_asistencia", "95_asistencia", "horario_extendido", "dos_dosis"]
-    duracion_simulacion_dias = 80
+    # Escenarios a ejecutar. Puedes comentar o añadir escenarios según sea necesario.
+    nombres_escenarios = [
+        "base", 
+        "10_cabinas" 
+        #"95_asistencia",
+        # "7_cabinas",
+        # "60_asistencia",
+        # "80_asistencia",
+        # "acelerado",
+        # "dos_dosis",
+        # "horario_extendido",
+        # "digito_dni"
+    ]
+    duracion_simulacion_dias = 200
 
     # Usar multiprocessing para ejecutar escenarios en paralelo
-    num_procesos = max(1, multiprocessing.cpu_count() // 2)  # Usar la mitad de los núcleos de CPU
+    # Se puede ajustar num_procesos a 1 para ejecución secuencial si hay problemas de memoria.
+    num_procesos = max(1, multiprocessing.cpu_count() // 2)
     print(f"Utilizando {num_procesos} procesos para ejecutar {len(nombres_escenarios)} escenarios...")
 
     # `partial` permite pre-llenar un argumento de la función
     func_ejecutar = partial(ejecutar_escenario, duracion_simulacion_dias=duracion_simulacion_dias)
     
+    # Ejecutar los escenarios
     with multiprocessing.Pool(processes=num_procesos) as pool:
-        resultados = pool.map(func_ejecutar, nombres_escenarios)
+        # Usamos pool.map para procesar todos los escenarios.
+        # Los resultados (métricas) no se usan aquí, pero se podrían registrar si fuera necesario.
+        pool.map(func_ejecutar, nombres_escenarios)
 
-    # Convertir la lista de resultados en un diccionario
-    metricas_por_escenario = {nombre: metricas for nombre, metricas in resultados if metricas}
-
-    # 6. Generar visualizaciones comparativas
-    if metricas_por_escenario:
-        print("\n--- Generando visualizaciones comparativas entre escenarios ---")
-        ruta_salida_comparativa = os.path.join("data", "output", "comparativas")
-        os.makedirs(ruta_salida_comparativa, exist_ok=True)
-
-        plot_comparacion_escenarios(metricas_por_escenario, 'costos.costo_total_campana', 'Comparación de Costo Total por Escenario', ruta_salida_comparativa)
-        plot_comparacion_escenarios(metricas_por_escenario, 'generales.total_vacunados', 'Comparación de Total de Vacunados por Escenario', ruta_salida_comparativa)
-        plot_comparacion_escenarios(metricas_por_escenario, 'tiempos_espera_minutos.promedio', 'Comparación de Tiempo de Espera Promedio por Escenario', ruta_salida_comparativa)
-        plot_comparacion_escenarios(metricas_por_escenario, 'costos.eficiencia_costo_tiempo_por_dia', 'Comparación de Eficiencia Costo/Tiempo por Escenario', ruta_salida_comparativa)
-        plot_comparacion_escenarios(metricas_por_escenario, 'hitos_vacunacion.100_porciento.dias', 'Comparación de Días para Vacunar al 100% de la Población', ruta_salida_comparativa)
-        
-        print(f"Visualizaciones comparativas guardadas en: {ruta_salida_comparativa}")
-    else:
-        print("No se generaron métricas para comparar.")
-
-    print("\nSimulación de la campaña de vacunación finalizada.")
+    print("\nTodas las simulaciones de escenarios han finalizado.")
+    print("Los resultados y métricas de cada escenario se han guardado en sus respectivos directorios en 'data/output/'.")
+    print("Para generar los gráficos comparativos, ejecuta el script 'src/generar_comparativas.py'.")
 
 if __name__ == '__main__':
     main()
