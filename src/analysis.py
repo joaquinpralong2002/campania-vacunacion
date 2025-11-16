@@ -139,7 +139,7 @@ def calcular_metricas_principales(resultados_df: pd.DataFrame, config_escenario:
     eficiencia_costo_tiempo = (costo_total_campana / duracion_dias) if duracion_dias > 0 else 0
 
     # --- Cálculo de Tiempos para Hitos de Vacunación ---
-    poblacion_total = config_escenario.get("tamano_poblacion", 0)
+    poblacion_total = config_escenario.get("poblacion_total", 0)
     horas_operacion = config_escenario.get("horas_operacion_por_dia", 1)
     tiempos_hitos = calcular_tiempo_para_hitos_vacunacion(vacunados_df, poblacion_total, horas_operacion)
 

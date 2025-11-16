@@ -13,7 +13,7 @@ def configurar_estilo_graficos():
     plt.rcParams['axes.titlesize'] = 16
     plt.rcParams['axes.labelsize'] = 12
 
-def plot_vacunados_acumulados(resultados_df: pd.DataFrame, ruta_guardado: str):
+def plot_vacunados_acumulados(resultados_df: pd.DataFrame, ruta_guardado: str, horas_operacion_dia: int):
     """
     Genera y guarda un gráfico de la cantidad de pacientes vacunados acumulados a lo largo del tiempo.
     """
@@ -31,9 +31,9 @@ def plot_vacunados_acumulados(resultados_df: pd.DataFrame, ruta_guardado: str):
     # Creación del gráfico
     plt.figure()
     # Dibujado del gráfico
-    plt.plot(vacunados_df['tiempo_simulacion'] / 60, vacunados_df['vacunados_acumulados'])
+    plt.plot(vacunados_df['tiempo_simulacion'] / (60 * horas_operacion_dia), vacunados_df['vacunados_acumulados'])
     plt.title('Pacientes Vacunados Acumulados vs. Tiempo')
-    plt.xlabel('Tiempo (horas)')
+    plt.xlabel('Tiempo (días)')
     plt.ylabel('Total de Pacientes Vacunados')
     plt.grid(True)
     # Guardado como archivo png
@@ -41,7 +41,7 @@ def plot_vacunados_acumulados(resultados_df: pd.DataFrame, ruta_guardado: str):
     # Liberación de memoria
     plt.close()
 
-def plot_longitud_cola_vs_tiempo(resultados_df: pd.DataFrame, ruta_guardado: str):
+def plot_longitud_cola_vs_tiempo(resultados_df: pd.DataFrame, ruta_guardado: str, horas_operacion_dia: int):
     """
     Genera y guarda un gráfico de la longitud de la cola a lo largo del tiempo.
     """
@@ -50,9 +50,9 @@ def plot_longitud_cola_vs_tiempo(resultados_df: pd.DataFrame, ruta_guardado: str
         return
 
     plt.figure()
-    plt.plot(resultados_df['tiempo_simulacion'] / 60, resultados_df['longitud_cola_actual'], alpha=0.7)
+    plt.plot(resultados_df['tiempo_simulacion'] / (60 * horas_operacion_dia), resultados_df['longitud_cola_actual'], alpha=0.7)
     plt.title('Evolución de la Longitud de la Cola vs. Tiempo')
-    plt.xlabel('Tiempo (horas)')
+    plt.xlabel('Tiempo (días)')
     plt.ylabel('Número de Pacientes en Cola')
     plt.grid(True)
     plt.savefig(os.path.join(ruta_guardado, 'longitud_cola.png'))
@@ -120,7 +120,7 @@ def plot_comparacion_escenarios(metricas_por_escenario: dict, metrica: str, titu
     plt.savefig(os.path.join(ruta_guardado, f'comparacion_{metrica}.png'))
     plt.close()
 
-def generar_visualizaciones_escenario(resultados_df: pd.DataFrame, ruta_escenario: str):
+def generar_visualizaciones_escenario(resultados_df: pd.DataFrame, ruta_escenario: str, config_escenario: dict):
     """
     Genera y guarda todas las visualizaciones para un único escenario. Simplifica el main.py, para que solo tenga que llamar a esta función.
     """
@@ -131,9 +131,11 @@ def generar_visualizaciones_escenario(resultados_df: pd.DataFrame, ruta_escenari
     # Configurar estilo de gráficos
     configurar_estilo_graficos()
     
+    horas_operacion_dia = config_escenario["horas_operacion_por_dia"]
+
     # Llamar a cada una de las funciones de gráficos individuales
-    plot_vacunados_acumulados(resultados_df, ruta_escenario)
-    plot_longitud_cola_vs_tiempo(resultados_df, ruta_escenario)
+    plot_vacunados_acumulados(resultados_df, ruta_escenario, horas_operacion_dia)
+    plot_longitud_cola_vs_tiempo(resultados_df, ruta_escenario, horas_operacion_dia)
     plot_histograma_tiempos_espera(resultados_df, ruta_escenario)
     
     print(f"Gráficos para el escenario guardados en: {ruta_escenario}")
@@ -152,11 +154,15 @@ if __name__ == '__main__':
     }
     df_prueba = pd.DataFrame(datos_prueba)
     
+    # Cargar configuración del escenario base para los cálculos
+    from src.config import ConfiguracionSimulacion
+    config_prueba = ConfiguracionSimulacion.obtener_configuracion_escenario("base")
+    
     # Ruta para guardar los gráficos de prueba
     ruta_prueba = "data/output/plots_prueba"
     
     print(f"--- Generando visualizaciones de prueba en '{ruta_prueba}' ---")
-    generar_visualizaciones_escenario(df_prueba, ruta_prueba)
+    generar_visualizaciones_escenario(df_prueba, ruta_prueba, config_prueba)
 
     # --- Prueba para el gráfico de comparación ---
     metricas_prueba = {
