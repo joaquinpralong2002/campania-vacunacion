@@ -12,7 +12,7 @@ class ConfiguracionSimulacion:
         "probabilidad_reprogramacion": 0.20,  # Probabilidad de que un paciente reprograme si la cola es larga
         "horas_operacion_por_dia": 10,  # Horas de operación diarias (8:00 a 18:00)
         "tasa_asistencia": 0.70,  # Porcentaje de personas que realmente asisten en su día asignado
-        "dosis_diarias_disponibles": float('inf'), # Dosis diarias disponibles, se asume infinito si no hay límite
+
         "poblacion_total": 198000, # Población total a vacunar
         "dias_simulacion": 365, # Días máximos para ejecutar la simulación
         "asignacion_digitos_dias": { # Mapeo de días de la semana (0=Lunes) a dígitos del DNI
@@ -40,8 +40,8 @@ class ConfiguracionSimulacion:
     ESCENARIO_10_CABINAS = ESCENARIO_BASE.copy()
     ESCENARIO_10_CABINAS["num_cabinas"] = 10
 
-    ESCENARIO_20_CABINAS = ESCENARIO_BASE.copy()
-    ESCENARIO_20_CABINAS["num_cabinas"] = 20
+    ESCENARIO_CABINAS_12_SEMANAS = ESCENARIO_BASE.copy()
+    ESCENARIO_CABINAS_12_SEMANAS["num_cabinas"] = 17
     # Escenarios con 60, 80 y 95% de tasa de asistencia
     
     # Tasa de asistencia del 60%
@@ -77,8 +77,8 @@ class ConfiguracionSimulacion:
             return ConfiguracionSimulacion.ESCENARIO_BASE
         elif nombre_escenario == "10_cabinas":
             return ConfiguracionSimulacion.ESCENARIO_10_CABINAS
-        elif nombre_escenario == "20_cabinas":
-            return ConfiguracionSimulacion.ESCENARIO_20_CABINAS
+        elif nombre_escenario == "12_semanas":
+            return ConfiguracionSimulacion.ESCENARIO_CABINAS_12_SEMANAS
         elif nombre_escenario == "80_asistencia":
             return ConfiguracionSimulacion.ESCENARIO_80_ASISTENCIA
         elif nombre_escenario == "95_asistencia":
