@@ -1,132 +1,114 @@
 # src/simulation.py
 
-import simpy # librería principal para la simulación de eventos discretos. Nos proporciona el entorno (Environment), los procesos y los recursos
-import random # para introducir aleatoriedad en el modelo, como el tiempo entre llegadas de pacientes o el tiempo que toma una vacunación
-import pandas as pd # para almacenar y analizar los datos generados por la simulación en un DataFrame
-from src.config import ConfiguracionSimulacion # importamos la clase desde el archivo config.py para poder acceder a los parámetros de cada escenario
+import simpy
+import random
+import pandas as pd
+from src.config import ConfiguracionSimulacion
 
-# Lista para recolectar datos de la simulación. Cada vez que ocurra un evento importante 
-# (un paciente es vacunado, uno reprograma, etc.), guardamos un registro en esta lista.
 datos_simulacion = []
 
+def generar_llegadas_por_dia(env, dia, centro_vacunacion, config):
+    """
+    Genera las llegadas de pacientes para un día específico, con tiempos relativos
+    al inicio de ese día. Esta función es iniciada por un proceso maestro.
+    """
+    dia_semana = dia % 5
+    digitos_hoy = config["asignacion_digitos_dias"].get(dia_semana, [])
+    if not digitos_hoy:
+        return
 
-def generar_llegadas(env, centro_vacunacion, config):
-    """Genera la llegada de pacientes al centro de vacunación."""
-    id_paciente = 0
-    while True:
-        # El tiempo entre llegadas sigue una distribución exponencial para un proceso de Poisson
-        tasa_llegada = config["tasa_llegada_por_minuto"]
+    pacientes_por_digito = config["poblacion_total"] / 10
+    pacientes_esperados_hoy = len(digitos_hoy) * pacientes_por_digito
+    pacientes_que_asisten = int(pacientes_esperados_hoy * config["tasa_asistencia"])
 
-        # Tiempo de pausa que simula el tiempo entre la llegada de un paciente y el siguiente.
-        yield env.timeout(random.expovariate(tasa_llegada))
+    minutos_operacion = config["horas_operacion_por_dia"] * 60
+    tiempos_de_llegada = [random.uniform(0, minutos_operacion) for _ in range(pacientes_que_asisten)]
+    tiempos_de_llegada.sort()
 
-        id_paciente += 1
+    tiempo_actual_dia = 0
+    for i, tiempo_llegada in enumerate(tiempos_de_llegada):
+        espera = tiempo_llegada - tiempo_actual_dia
+        if espera > 0:
+            yield env.timeout(espera)
         
-        # Se considera la tasa de asistencia para determinar si el paciente llega
-        # Se genera un número aleatorio entre 0 y 1. Si ese número es menor que
-        # la tasa de asistencia (por ejemplo, 0.80), entonces el paciente asiste.
-        if random.random() < config.get("tasa_asistencia", 1.0):
-            # Si el paciente asiste, se crea un nuevo proceso para él.
-            env.process(proceso_paciente(env, f'Paciente_{id_paciente}', centro_vacunacion, config))
+        tiempo_actual_dia = tiempo_llegada
+        
+        digito_paciente = random.choice(digitos_hoy)
+        id_paciente = f"Dia{dia}_Digito{digito_paciente}_Pac{i}"
+        env.process(proceso_paciente(env, id_paciente, centro_vacunacion, config, dia, digito_paciente))
 
-#Proceso para determinar si un paciente espera o se va
-def proceso_paciente(env, nombre_paciente, centro_vacunacion, config):
+def fuente_de_llegadas(env, centro_vacunacion, config, duracion_dias):
+    """
+    Proceso maestro que orquesta la generación de llegadas para cada día de la simulación.
+    Este modelo se basa en la asignación de días de vacunación según el último dígito del DNI.
+    """
+    minutos_por_dia = config["horas_operacion_por_dia"] * 60
+    for dia in range(duracion_dias):
+        # Inicia el generador de llegadas para el día actual.
+        env.process(generar_llegadas_por_dia(env, dia, centro_vacunacion, config))
+        # Espera a que termine el día para iniciar el siguiente.
+        yield env.timeout(minutos_por_dia)
+
+
+def proceso_paciente(env, nombre_paciente, centro_vacunacion, config, dia, digito_dni):
     """Modela el flujo completo de un paciente en el centro de vacunación."""
     tiempo_llegada = env.now
     
-    # Decisión de reprogramar: se toma ANTES de entrar a la cola de espera.
-    # Si todas las cabinas están ocupadas, hay posibilidad de reprogramar.
     if centro_vacunacion.count == centro_vacunacion.capacity:
         if random.random() < config["probabilidad_reprogramacion"]:
-            longitud_cola_al_llegar = len(centro_vacunacion.queue)
-            registrar_evento(env, nombre_paciente, "Reprogramacion", longitud_cola_al_llegar, 0, 0)
-            return  # El paciente abandona el sistema
+            registrar_evento(env, nombre_paciente, "Reprogramacion", len(centro_vacunacion.queue), 0, 0, dia, digito_dni)
+            return
 
-    # El paciente solicita una cabina de vacunación y espera si es necesario
     with centro_vacunacion.request() as solicitud:
         yield solicitud
-        
         tiempo_inicio_servicio = env.now
         tiempo_espera = tiempo_inicio_servicio - tiempo_llegada
         
-        # El tiempo de vacunación sigue una distribución exponencial
         tiempo_vacunacion = random.expovariate(1.0 / config["tiempo_promedio_vacunacion_minutos"])
         yield env.timeout(tiempo_vacunacion)
         
         tiempo_salida = env.now
         tiempo_en_sistema = tiempo_salida - tiempo_llegada
         
-        # La longitud de la cola se mide justo al momento de la salida del paciente
-        longitud_cola_al_salir = len(centro_vacunacion.queue)
-        registrar_evento(env, nombre_paciente, "Vacunado", longitud_cola_al_salir, tiempo_espera, tiempo_en_sistema)
+        registrar_evento(env, nombre_paciente, "Vacunado", len(centro_vacunacion.queue), tiempo_espera, tiempo_en_sistema, dia, digito_dni)
 
-#función auxiliar que recolecta datos clave durante la simulación
-def registrar_evento(env, paciente_id, evento, longitud_cola, tiempo_espera, tiempo_sistema):
-    """Registra un evento clave de la simulación en la lista de datos. Toma la información de un evento (quién, qué pasó, cuándo, cuánto esperó, etc.) 
-    y la añade como un diccionario a la lista global datos_simulacion."""
+def registrar_evento(env, paciente_id, evento, longitud_cola, tiempo_espera, tiempo_sistema, dia, digito_dni):
+    """Registra un evento clave de la simulación."""
     datos_simulacion.append({
         "tiempo_simulacion": env.now,
+        "dia": dia,
         "paciente_id": paciente_id,
+        "digito_dni": digito_dni,
         "evento": evento,
         "longitud_cola_actual": longitud_cola,
         "tiempo_espera_minutos": tiempo_espera,
         "tiempo_en_sistema_minutos": tiempo_sistema,
     })
 
-
-
 def ejecutar_simulacion(config_escenario: dict, duracion_dias: int):
-    """
-    Configura y ejecuta un escenario completo de la simulación.
-    Inicia el proceso de llegada de pacientes.
-    Ejecuta la simulación hasta que se cumple el tiempo estipulado.
-    
-    Args:
-        config_escenario (dict): Diccionario con los parámetros del escenario.
-        duracion_dias (int): Número de días que durará la simulación.
-        
-    Returns:
-        pd.DataFrame: Un DataFrame de pandas con los datos recolectados durante la simulación.
-        Estructura que luego es utilizada en el analisis posterior
-    """
-    # Limpia los datos de cualquier ejecución anterior.
+    """Configura y ejecuta un escenario completo de la simulación."""
     datos_simulacion.clear()
-    
-    # Crea el entorno de simulación, que es el reloj y gestor de todos los eventos
     env = simpy.Environment()
-    
-    # Crear el recurso que representa las cabinas de vacunación
     centro_vacunacion = simpy.Resource(env, capacity=config_escenario["num_cabinas"])
     
-    # Iniciar el proceso que genera las llegadas de pacientes
-    env.process(generar_llegadas(env, centro_vacunacion, config_escenario))
+    # Iniciar el proceso maestro que gestiona las llegadas
+    env.process(fuente_de_llegadas(env, centro_vacunacion, config_escenario, duracion_dias))
     
-    # Calcular la duración total de la simulación en minutos
+    # Ejecutar la simulación por la duración total
     duracion_total_minutos = config_escenario["horas_operacion_por_dia"] * 60 * duracion_dias
-
-    # Línea que inicia la simulación. Le dice a SimPy que empiece a avanzar el tiempo y a ejecutar los eventos hasta que se
-    # alcance la duración total de la simulación en minutos.
     env.run(until=duracion_total_minutos)
-    
-    # Una vez que la simulación termina, convierte la lista de diccionarios en un DataFrame de Pandas, que es
-    # utilizado para el análisis posterior.
+
     return pd.DataFrame(datos_simulacion)
 
 # --- Bloque para Pruebas ---
-#Simula una campaña a traves del escenario BASE
 if __name__ == '__main__':
-    # Cargar la configuración para un escenario de prueba (ej. "base")
     config_base = ConfiguracionSimulacion.obtener_configuracion_escenario("base")
+    print("Ejecutando simulación de prueba para el escenario 'base' (duración: 5 días)...")
     
-    print("Ejecutando simulación de prueba para el escenario base (duración: 1 día)...")
-    
-    # Ejecutar la simulación para un solo día a modo de prueba
-    resultados_df = ejecutar_simulacion(config_base, duracion_dias=1)
+    resultados_df = ejecutar_simulacion(config_base, duracion_dias=5)
     
     print(f"Simulación completada. Total de eventos registrados: {len(resultados_df)}")
     
-
-    #Condicional para obtener tiempo de espera promedio si hubo vacunados ese dia
     if not resultados_df.empty:
         print("\n--- Primeros 5 eventos registrados ---")
         print(resultados_df.head())
@@ -140,3 +122,8 @@ if __name__ == '__main__':
         if not vacunados_df.empty:
             tiempo_espera_promedio = vacunados_df['tiempo_espera_minutos'].mean()
             print(f"Tiempo de espera promedio para ser vacunado: {tiempo_espera_promedio:.2f} minutos")
+            
+            print("\n--- Análisis por Día ---")
+            vacunados_por_dia = resultados_df[resultados_df['evento'] == 'Vacunado'].groupby('dia').size()
+            print("Pacientes vacunados por día:")
+            print(vacunados_por_dia)

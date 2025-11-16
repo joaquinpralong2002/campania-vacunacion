@@ -11,11 +11,12 @@ def test_ejecucion_smoke_test():
     # Usar una configuración simple para la prueba
     config_test = {
         "num_cabinas": 1,
-        "tasa_llegada_por_minuto": 1,
         "tiempo_promedio_vacunacion_minutos": 3,
         "probabilidad_reprogramacion": 0.1,
         "horas_operacion_por_dia": 1, # Simular solo por 1 hora
         "tasa_asistencia": 0.9,
+        "poblacion_total": 198000,
+        "asignacion_digitos_dias": { 0: [0, 1], 1: [2, 3], 2: [4, 5], 3: [6, 7], 4: [8, 9] }
     }
     
     # Ejecutar la simulación por 1 día (que en esta config es solo 1 hora)
@@ -46,11 +47,12 @@ def test_simulacion_sin_reprogramacion():
     """
     config_test = {
         "num_cabinas": 1,
-        "tasa_llegada_por_minuto": 5, # Tasa alta para forzar cola
         "tiempo_promedio_vacunacion_minutos": 3,
         "probabilidad_reprogramacion": 0.0, # <-- Punto clave de la prueba
         "horas_operacion_por_dia": 1,
         "tasa_asistencia": 1.0,
+        "poblacion_total": 198000,
+        "asignacion_digitos_dias": { 0: [0, 1], 1: [2, 3], 2: [4, 5], 3: [6, 7], 4: [8, 9] }
     }
     
     resultados_df = ejecutar_simulacion(config_test, duracion_dias=1)

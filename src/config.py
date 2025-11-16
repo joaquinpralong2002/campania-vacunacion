@@ -8,14 +8,20 @@ class ConfiguracionSimulacion:
     # Parámetros del Escenario Base - en base a contexto del problema
     ESCENARIO_BASE = {
         "num_cabinas": 5,  # Número de puestos de vacunación
-        "tasa_llegada_por_minuto": 30,  # Pacientes que llegan por minuto
         "tiempo_promedio_vacunacion_minutos": 3,  # Tiempo promedio para vacunar a una persona
         "probabilidad_reprogramacion": 0.20,  # Probabilidad de que un paciente reprograme si la cola es larga
         "horas_operacion_por_dia": 10,  # Horas de operación diarias (8:00 a 18:00)
         "tasa_asistencia": 0.70,  # Porcentaje de personas que realmente asisten en su día asignado
         "dosis_diarias_disponibles": float('inf'), # Dosis diarias disponibles, se asume infinito si no hay límite
-        "tamano_poblacion": 198000, # Tamaño de la población a vacunar (ejemplo, necesita ser definido para "Concordia")
+        "poblacion_total": 198000, # Población total a vacunar
         "dias_simulacion": 365, # Días máximos para ejecutar la simulación
+        "asignacion_digitos_dias": { # Mapeo de días de la semana (0=Lunes) a dígitos del DNI
+            0: [0, 1], # Lunes
+            1: [2, 3], # Martes
+            2: [4, 5], # Miércoles
+            3: [6, 7], # Jueves
+            4: [8, 9], # Viernes
+        }
     }
 
     # Parámetros de Costos

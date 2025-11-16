@@ -8,7 +8,7 @@ def test_obtener_configuracion_escenario_base():
     config = ConfiguracionSimulacion.obtener_configuracion_escenario("base")
     assert isinstance(config, dict)
     assert config["num_cabinas"] == 5
-    assert "tasa_llegada_por_minuto" in config
+
 
 def test_obtener_configuracion_escenario_desconocido():
     """Verifica que se lance un ValueError para un escenario que no existe."""
