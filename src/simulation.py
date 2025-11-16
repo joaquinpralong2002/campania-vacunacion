@@ -9,6 +9,7 @@ from src.config import ConfiguracionSimulacion # importamos la clase desde el ar
 # (un paciente es vacunado, uno reprograma, etc.), guardamos un registro en esta lista.
 datos_simulacion = []
 
+
 def generar_llegadas(env, centro_vacunacion, config):
     """Genera la llegada de pacientes al centro de vacunación."""
     id_paciente = 0
@@ -28,6 +29,7 @@ def generar_llegadas(env, centro_vacunacion, config):
             # Si el paciente asiste, se crea un nuevo proceso para él.
             env.process(proceso_paciente(env, f'Paciente_{id_paciente}', centro_vacunacion, config))
 
+#Proceso para determinar si un paciente espera o se va
 def proceso_paciente(env, nombre_paciente, centro_vacunacion, config):
     """Modela el flujo completo de un paciente en el centro de vacunación."""
     tiempo_llegada = env.now
@@ -58,6 +60,7 @@ def proceso_paciente(env, nombre_paciente, centro_vacunacion, config):
         longitud_cola_al_salir = len(centro_vacunacion.queue)
         registrar_evento(env, nombre_paciente, "Vacunado", longitud_cola_al_salir, tiempo_espera, tiempo_en_sistema)
 
+#función auxiliar que recolecta datos clave durante la simulación
 def registrar_evento(env, paciente_id, evento, longitud_cola, tiempo_espera, tiempo_sistema):
     """Registra un evento clave de la simulación en la lista de datos. Toma la información de un evento (quién, qué pasó, cuándo, cuánto esperó, etc.) 
     y la añade como un diccionario a la lista global datos_simulacion."""
@@ -70,9 +73,13 @@ def registrar_evento(env, paciente_id, evento, longitud_cola, tiempo_espera, tie
         "tiempo_en_sistema_minutos": tiempo_sistema,
     })
 
+
+
 def ejecutar_simulacion(config_escenario: dict, duracion_dias: int):
     """
-    Configura y ejecuta un escenario completo de la simulación. 
+    Configura y ejecuta un escenario completo de la simulación.
+    Inicia el proceso de llegada de pacientes.
+    Ejecuta la simulación hasta que se cumple el tiempo estipulado.
     
     Args:
         config_escenario (dict): Diccionario con los parámetros del escenario.
@@ -80,6 +87,7 @@ def ejecutar_simulacion(config_escenario: dict, duracion_dias: int):
         
     Returns:
         pd.DataFrame: Un DataFrame de pandas con los datos recolectados durante la simulación.
+        Estructura que luego es utilizada en el analisis posterior
     """
     # Limpia los datos de cualquier ejecución anterior.
     datos_simulacion.clear()
@@ -105,6 +113,7 @@ def ejecutar_simulacion(config_escenario: dict, duracion_dias: int):
     return pd.DataFrame(datos_simulacion)
 
 # --- Bloque para Pruebas ---
+#Simula una campaña a traves del escenario BASE
 if __name__ == '__main__':
     # Cargar la configuración para un escenario de prueba (ej. "base")
     config_base = ConfiguracionSimulacion.obtener_configuracion_escenario("base")
@@ -116,6 +125,8 @@ if __name__ == '__main__':
     
     print(f"Simulación completada. Total de eventos registrados: {len(resultados_df)}")
     
+
+    #Condicional para obtener tiempo de espera promedio si hubo vacunados ese dia
     if not resultados_df.empty:
         print("\n--- Primeros 5 eventos registrados ---")
         print(resultados_df.head())
