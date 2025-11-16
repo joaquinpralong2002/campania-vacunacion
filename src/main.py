@@ -48,7 +48,7 @@ def ejecutar_escenario(nombre_escenario: str, duracion_simulacion_dias: int) -> 
 
     # 5. Generar visualizaciones
     print(f"Generando visualizaciones para '{nombre_escenario}'...")
-    generar_visualizaciones_escenario(resultados_df, ruta_salida_escenario)
+    generar_visualizaciones_escenario(resultados_df, ruta_salida_escenario, config_actual)
     print(f"Visualizaciones para '{nombre_escenario}' guardadas en: {ruta_salida_escenario}")
 
     # 6. Guardar métricas en JSON
@@ -74,7 +74,7 @@ def main():
 
     # Escenarios a ejecutar. Puedes comentar o añadir escenarios según sea necesario.
     nombres_escenarios = [
-        "base", 
+        # "base", 
         "10_cabinas" 
         #"95_asistencia",
         # "7_cabinas",
@@ -85,7 +85,7 @@ def main():
         # "horario_extendido",
         # "digito_dni"
     ]
-    duracion_simulacion_dias = 200
+    duracion_simulacion_dias = 50
 
     # Usar multiprocessing para ejecutar escenarios en paralelo
     # Se puede ajustar num_procesos a 1 para ejecución secuencial si hay problemas de memoria.
