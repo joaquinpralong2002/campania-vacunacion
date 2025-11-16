@@ -59,7 +59,7 @@ def main():
     """
     print("Iniciando la simulación de la campaña de vacunación en paralelo...")
 
-    nombres_escenarios = ["base", "10_cabinas", "80_asistencia", "95_asistencia", "horario_extendido", "dos_dosis", "acelerado", "digito_dni"]
+    nombres_escenarios = ["base", "10_cabinas", "80_asistencia", "95_asistencia", "horario_extendido", "dos_dosis"]
     duracion_simulacion_dias = 80
 
     # Usar multiprocessing para ejecutar escenarios en paralelo
