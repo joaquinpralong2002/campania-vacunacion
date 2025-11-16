@@ -43,6 +43,12 @@ def fuente_de_llegadas(env, centro_vacunacion, config, duracion_dias, datos_simu
     """
     Proceso maestro que orquesta la generación de llegadas para cada día de la simulación.
     Este modelo se basa en la asignación de días de vacunación según el último dígito del DNI.
+
+    Supuesto clave: Las llegadas de pacientes se modelan como un proceso de Poisson.
+    Esto implica que los tiempos entre llegadas consecutivas siguen una distribución exponencial.
+    Este modelo es apropiado para situaciones donde los eventos (llegadas de pacientes)
+    ocurren de forma independiente y a una tasa promedio constante en un intervalo de tiempo dado,
+    lo cual es una suposición común y razonable para la llegada de individuos a un servicio.
     """
     minutos_por_dia = config["horas_operacion_por_dia"] * 60
     for dia in range(duracion_dias):

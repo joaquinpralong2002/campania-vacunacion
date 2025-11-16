@@ -50,7 +50,7 @@ def calcular_tiempo_para_hitos_vacunacion(vacunados_df: pd.DataFrame, poblacion_
             
             # Convertir minutos a días y semanas operativos
             dias_necesarios = tiempo_en_minutos / minutos_por_dia_operativo
-            semanas_necesarias = dias_necesarios / 7  # Asumiendo operación 7 días/semana
+            semanas_necesarias = dias_necesarios / 5  # Asumiendo operación 5 días/semana
             
             resultados_hitos[hito_nombre] = {
                 "dias": round(dias_necesarios, 2),
