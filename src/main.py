@@ -82,9 +82,9 @@ def main():
         # "80_asistencia",
         # "acelerado",
         # "dos_dosis",
-         "horario_extendido",
+        # "horario_extendido",
         # "digito_dni"
-         "12_semanas"
+        # "12_semanas"
     ]
     duracion_simulacion_dias = 200
 

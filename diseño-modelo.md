@@ -64,10 +64,11 @@ Parámetros del Modelo (Inputs Configurables): Estos son los valores que se defi
 - Disponibilidad diaria de dosis
 
 - Costos:
+
   - Costo Fijo por Cabina: $55,000 por día.
   - Costo por Dosis: $2,000 por dosis administrada.
   - Costo por Reprogramación: $300 por persona que reprograma.
-  - Costo por Cabina Adicional: $150,000 (pago único).  
+  - Costo por Cabina Adicional: $150,000 (pago único).
 
 - Costos a estimar
   - Costo acumulado por día
@@ -92,27 +93,3 @@ Variables y Métricas de Desempeño (Outputs): Estos son los valores que el mode
 Gráficos a generar:
 
 - Vacunados acumulados vs. tiempo, cola acumulada vs. tiempo, ocupación diaria de puestos.
-
-- Histograma de Tiempos de Espera:
-
-  - La distribución de los tiempos de espera de los pacientes. El eje X sería el tiempo de espera en rangos (ej. 0-2 min, 2-4 min, etc.) y el eje Y la cantidad de pacientes en cada rango.
-  - Por qué es útil: Permite ver no solo el promedio, sino cuántos pacientes esperaron mucho tiempo y cuántos fueron atendidos rápidamente. Es excelente para visualizar la experiencia del paciente.
-
-- Gráfico de Tasa de Abandono (Reprogramaciones) a lo Largo del Día:
-
-  - Qué muestra: Cómo cambia el número de personas que abandonan la cola en diferentes momentos del día. El eje X sería la hora del día y el eje Y el número de reprogramaciones.
-  - Por qué es útil: Ayuda a identificar "horas pico" de frustración, que probablemente coinciden con los momentos de mayor longitud de cola. Podría justificar la asignación de más personal en esos horarios.
-
-- Gráfico de Costo Acumulado vs. Tiempo:
-
-  - Qué muestra: Cómo crece el costo total de la campaña a medida que pasan los días. El eje X es el tiempo (días) y el eje Y es el costo total en pesos.
-  - Por qué es útil: Visualiza el impacto financiero a lo largo del tiempo y permite comparar directamente la evolución del costo entre diferentes escenarios (ej. con 5 vs. 7 cabinas).
-
-- Gráfico de Dispersión (Scatter Plot): Tiempo de Espera vs. Longitud de Cola:
-
-  - Qué muestra: Cada punto representa un paciente, mostrando la longitud de la cola que había cuando llegó (eje X) y cuánto tiempo terminó esperando (eje Y).
-  - Por qué es útil: Demuestra visualmente la correlación directa entre el tamaño de la cola y el tiempo de espera individual, reforzando las conclusiones sobre la necesidad de gestionar la cola.
-
-- Gráfico de Barras Comparativo de Métricas Clave por Escenario:
-  - Qué muestra: Compara métricas finales importantes (ej. tiempo total para vacunar al 100%, costo total, tiempo de espera promedio) entre los diferentes escenarios que simules (escenario base, más cabinas, etc.).
-  - Por qué es útil: Es la forma más clara y directa de presentar tus conclusiones finales y justificar tus recomendaciones sobre qué escenario es el más eficiente.

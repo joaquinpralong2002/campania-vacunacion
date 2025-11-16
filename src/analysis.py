@@ -39,7 +39,7 @@ def calcular_tiempo_para_hitos_vacunacion(vacunados_df: pd.DataFrame, poblacion_
 
     for hito_nombre, hito_porcentaje in hitos.items():
 
-        #
+        # Calcular el número de vacunados necesarios para el hito
         vacunados_necesarios = int(poblacion_total * hito_porcentaje)
         
         # Buscar la primera vez que se alcanza el hito
@@ -181,31 +181,3 @@ def calcular_metricas_principales(resultados_df: pd.DataFrame, config_escenario:
     }
     
     return metricas
-
-# --- Bloque para Pruebas ---
-if __name__ == '__main__':
-    # Crear un DataFrame de ejemplo para probar la función de análisis
-    datos_prueba = {
-        "tiempo_simulacion": [10, 20, 25, 30, 35],
-        "paciente_id": ["P1", "P2", "P3", "P4", "P5"],
-        "evento": ["Vacunado", "Vacunado", "Reprogramacion", "Vacunado", "Reprogramacion"],
-        "longitud_cola_actual": [2, 3, 5, 1, 4],
-        "tiempo_espera_minutos": [5, 15, 0, 2, 0],
-        "tiempo_en_sistema_minutos": [8, 18, 0, 5, 0],
-    }
-    df_prueba = pd.DataFrame(datos_prueba)
-    
-    # Cargar configuración del escenario base para los cálculos
-    config_prueba = ConfiguracionSimulacion.obtener_configuracion_escenario("base")
-    
-    print("--- Ejecutando análisis de prueba con datos de ejemplo ---")
-    metricas_calculadas = calcular_metricas_principales(df_prueba, config_prueba, duracion_dias=1)
-    
-    # Imprimir los resultados de forma legible
-    import json
-    print(json.dumps(metricas_calculadas, indent=4))
-
-    # Prueba con DataFrame vacío
-    print("\n--- Probando con un DataFrame vacío ---")
-    metricas_vacias = calcular_metricas_principales(pd.DataFrame(), config_prueba, duracion_dias=1)
-    print(json.dumps(metricas_vacias, indent=4))

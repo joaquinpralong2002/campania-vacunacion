@@ -42,6 +42,7 @@ class ConfiguracionSimulacion:
 
     ESCENARIO_CABINAS_12_SEMANAS = ESCENARIO_BASE.copy()
     ESCENARIO_CABINAS_12_SEMANAS["num_cabinas"] = 17
+
     # Escenarios con 60, 80 y 95% de tasa de asistencia
     
     # Tasa de asistencia del 60%
@@ -54,15 +55,9 @@ class ConfiguracionSimulacion:
     ESCENARIO_BASE_95_ASISTENCIA = ESCENARIO_BASE.copy()
     ESCENARIO_BASE_95_ASISTENCIA["tasa_asistencia"] = 0.95
 
-    #Escenario acelerado con tasa de llegada por minuto de 50 pacientes y el tiempo de vacunacion 2 minutos
+    #Escenario acelerado con el tiempo de vacunacion 2 minutos
     ESCENARIO_ACELERADO = ESCENARIO_BASE.copy()
     ESCENARIO_ACELERADO["tiempo_promedio_vacunacion_minutos"] = 2
-
-    # Para el esquema de dos dosis, esto podría implicar una lógica más compleja dentro del modelo de simulación
-    # en lugar de solo un parámetro de configuración, pero podemos añadir un indicador aquí.
-    ESCENARIO_DOS_DOSIS = ESCENARIO_BASE.copy()
-    ESCENARIO_DOS_DOSIS["esquema_dos_dosis_habilitado"] = True
-    ESCENARIO_DOS_DOSIS["intervalo_dos_dosis_dias"] = 21
 
     ESCENARIO_HORARIO_EXTENDIDO = ESCENARIO_BASE.copy()
     ESCENARIO_HORARIO_EXTENDIDO["horas_operacion_por_dia"] = 12  # Operación de 8:00 a 20:00
@@ -83,8 +78,6 @@ class ConfiguracionSimulacion:
             return ConfiguracionSimulacion.ESCENARIO_80_ASISTENCIA
         elif nombre_escenario == "95_asistencia":
             return ConfiguracionSimulacion.ESCENARIO_BASE_95_ASISTENCIA
-        elif nombre_escenario == "dos_dosis":
-            return ConfiguracionSimulacion.ESCENARIO_DOS_DOSIS
         elif nombre_escenario == "acelerado":
             return ConfiguracionSimulacion.ESCENARIO_ACELERADO
         elif nombre_escenario == "horario_extendido":
