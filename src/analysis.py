@@ -22,8 +22,10 @@ def calcular_tiempo_para_hitos_vacunacion(vacunados_df: pd.DataFrame, poblacion_
         "100_porciento": 1.0,
     }
     
+    #Diccionario para almecenar resultados
     resultados_hitos = {}
 
+    #Chequeo para valores nulos
     if vacunados_df.empty or poblacion_total == 0:
         for hito_nombre in hitos:
             resultados_hitos[hito_nombre] = {"dias": "N/A", "semanas": "N/A", "vacunados_necesarios": "N/A"}
@@ -36,6 +38,8 @@ def calcular_tiempo_para_hitos_vacunacion(vacunados_df: pd.DataFrame, poblacion_
     minutos_por_dia_operativo = horas_operacion_dia * 60
 
     for hito_nombre, hito_porcentaje in hitos.items():
+
+        #
         vacunados_necesarios = int(poblacion_total * hito_porcentaje)
         
         # Buscar la primera vez que se alcanza el hito
