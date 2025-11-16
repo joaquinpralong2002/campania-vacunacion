@@ -135,8 +135,8 @@ def calcular_metricas_principales(resultados_df: pd.DataFrame, config_escenario:
     costo_total_campana = costo_fijo_total + costo_total_dosis + costo_total_reprogramaciones
     costo_por_paciente_vacunado = (costo_total_campana / total_vacunados) if total_vacunados > 0 else 0
 
-    # Métrica de eficiencia: Costo total por día de campaña.
-    eficiencia_costo_tiempo = (costo_total_campana / duracion_dias) if duracion_dias > 0 else 0
+    # Métrica de costo diario: Costo total por día de campaña.
+    costo_diario_promedio = (costo_total_campana / duracion_dias) if duracion_dias > 0 else 0
 
     # --- Cálculo de Tiempos para Hitos de Vacunación ---
     poblacion_total = config_escenario.get("poblacion_total", 0)
@@ -145,6 +145,11 @@ def calcular_metricas_principales(resultados_df: pd.DataFrame, config_escenario:
 
     # --- Ensamblar diccionario de resultados ---
     metricas = {
+        "parametros_escenario": {
+            "num_cabinas": config_escenario.get("num_cabinas"),
+            "tasa_asistencia": config_escenario.get("tasa_asistencia"),
+            "tiempo_promedio_vacunacion_minutos": config_escenario.get("tiempo_promedio_vacunacion_minutos"),
+        },
         "generales": {
             "total_pacientes_procesados": total_pacientes_procesados,
             "total_vacunados": total_vacunados,
@@ -170,7 +175,7 @@ def calcular_metricas_principales(resultados_df: pd.DataFrame, config_escenario:
             "costo_total_dosis": float(costo_total_dosis),
             "costo_total_reprogramaciones": float(costo_total_reprogramaciones),
             "costo_por_paciente_vacunado": float(costo_por_paciente_vacunado),
-            "eficiencia_costo_tiempo_por_dia": float(eficiencia_costo_tiempo),
+            "costo_diario_promedio": float(costo_diario_promedio),
         },
         "hitos_vacunacion": tiempos_hitos,
     }

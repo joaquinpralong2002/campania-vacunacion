@@ -74,18 +74,19 @@ def main():
 
     # Escenarios a ejecutar. Puedes comentar o añadir escenarios según sea necesario.
     nombres_escenarios = [
-        # "base", 
-        "10_cabinas" 
-        #"95_asistencia",
+        #"base", 
+        #"10_cabinas" 
+        # "95_asistencia",
         # "7_cabinas",
         # "60_asistencia",
         # "80_asistencia",
         # "acelerado",
         # "dos_dosis",
-        # "horario_extendido",
+         "horario_extendido",
         # "digito_dni"
+         "12_semanas"
     ]
-    duracion_simulacion_dias = 50
+    duracion_simulacion_dias = 200
 
     # Usar multiprocessing para ejecutar escenarios en paralelo
     # Se puede ajustar num_procesos a 1 para ejecución secuencial si hay problemas de memoria.
